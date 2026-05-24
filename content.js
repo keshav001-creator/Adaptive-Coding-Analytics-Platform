@@ -1,51 +1,198 @@
 console.log("DSA Tracker Running");
 
-const currentURL = window.location.href;
 
-console.log("Current URL: ", currentURL);
+// ---------------- CURRENT QUESTION ----------------
 
-const parts = currentURL.split("/");
+function getQuestionSlug() {
 
-const questionName = parts[4];
+    const parts = window.location.href.split("/");
 
-console.log(questionName);
+    if (parts[3] === "problems") {
+        return parts[4];
+    }
+
+    return null;
+}
+
+console.log("Current Question:", currentQuestion);
 
 
-const startTime = Date.now();
+// ---------------- TIMER VARIABLES ----------------
 
-console.log("Start Time:", startTime);
+let startTime = Date.now();
 
-window.addEventListener("beforeunload", () => {
+let totalTime = 0;
 
-    const endTime = Date.now();
+let isTabActive = true;
 
-    const timeSpent = (endTime - startTime) / 1000;
 
-    console.log("End Time:", endTime);
-    console.log("Time Spent (seconds):", timeSpent);
-})
+// ---------------- FAILED ATTEMPT VARIABLES ----------------
 
-//Document- Represents the entire webpage HTML.
-//document.body- visible page body
-//innerText all visible text on webpage.
 let failedAttempts = 0;
+
 let alreadyDetected = false;
 
-const observer = new MutationObserver(() => {
-    const pageText = document.body.innerText;
-    if (pageText.includes("Wrong Answer")) {
 
-        if (!alreadyDetected) {
-            failedAttempts++;
-            alreadyDetected = true;
-            console.log("Failed Attempts:", failedAttempts);
+// ---------------- FUNCTION TO SEND / PRINT DATA ----------------
+
+function finalizeQuestionSession() {
+
+    // Add current active session time
+    if (isTabActive) {
+
+        const currentSessionTime = Date.now() - startTime;
+
+        totalTime += currentSessionTime;
+    }
+
+    const finalTimeInSeconds = totalTime / 1000;
+
+    console.log("------------- QUESTION COMPLETED -------------");
+
+    console.log("Question:", currentQuestion);
+
+    console.log("Final Time:", finalTimeInSeconds);
+
+    console.log("Failed Attempts:", failedAttempts);
+
+    console.log("----------------------------------------------");
+
+
+    // SEND DATA TO BACKEND
+    chrome.runtime.sendMessage({
+    question: currentQuestion,
+    timeSpent: finalTimeInSeconds,
+    failedAttempts: failedAttempts
+});
+
+}
+
+
+// ---------------- RESET TRACKING FOR NEW QUESTION ----------------
+
+function resetTracking(newQuestion) {
+
+    currentQuestion = newQuestion;
+
+    startTime = Date.now();
+
+    totalTime = 0;
+
+    isTabActive = true;
+
+    failedAttempts = 0;
+
+    alreadyDetected = false;
+
+    console.log("Tracking Started For:", currentQuestion);
+}
+
+
+// ---------------- TAB VISIBILITY TRACKING ----------------
+
+document.addEventListener("visibilitychange", () => {
+
+    // USER LEFT TAB
+    if (document.hidden) {
+
+        if (isTabActive) {
+
+            const currentSessionTime = Date.now() - startTime;
+
+            totalTime += currentSessionTime;
+
+            isTabActive = false;
+
+            console.log("Timer Paused");
+
+            console.log(
+                "Total Active Time Till Now:",
+                totalTime / 1000,
+                "seconds"
+            );
         }
-    } else {
-        alreadyDetected = false;
+
+    }
+
+    // USER RETURNED TO TAB
+    else {
+
+        if (!isTabActive) {
+
+            startTime = Date.now();
+
+            isTabActive = true;
+
+            console.log("Timer Resumed");
+        }
     }
 });
 
- observer.observe(document.body, {
-        childList: true,
-        subtree: true
- });
+
+// ---------------- DETECT QUESTION CHANGE ----------------
+
+setInterval(() => {
+
+    const newQuestion =
+        window.location.href.split("/")[4];
+
+    // SAME QUESTION
+    if (newQuestion === currentQuestion) {
+        return;
+    }
+
+    // NEW QUESTION DETECTED
+
+    console.log("Question Changed");
+
+    finalizeQuestionSession();
+
+    resetTracking(newQuestion);
+
+}, 1000);
+
+
+
+// ---------------- PAGE CLOSE / REFRESH ----------------
+
+window.addEventListener("beforeunload", () => {
+
+    finalizeQuestionSession();
+
+});
+
+
+// ---------------- WRONG ANSWER DETECTION ----------------
+
+const observer = new MutationObserver(() => {
+
+    const pageText = document.body.innerText;
+
+    if (pageText.includes("Wrong Answer")) {
+
+        if (!alreadyDetected) {
+
+            failedAttempts++;
+
+            alreadyDetected = true;
+
+            console.log(
+                "Failed Attempts:",
+                failedAttempts
+            );
+        }
+
+    } else {
+
+        alreadyDetected = false;
+    }
+
+});
+
+
+// ---------------- START OBSERVER ----------------
+
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});

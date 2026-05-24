@@ -1,11 +1,24 @@
 {
-  "manifest_version": 3,
-  "name": "DSA Tracker",
-  "version": "1.0",
-  "content_scripts": [
-    {
-      "matches": ["https://leetcode.com/*"],
-      "js": ["content.js"]
-    }
-  ]
+    "manifest_version": 3,
+    "name": "DSA Tracker",
+    "version": "1.0",
+    "permissions": [
+        "activeTab"
+    ],
+    "host_permissions": [
+        "http://localhost:5000/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+     "content_scripts": [
+        {
+            "matches": [
+                "https://leetcode.com/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
 }
