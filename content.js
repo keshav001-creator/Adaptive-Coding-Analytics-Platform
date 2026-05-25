@@ -13,7 +13,7 @@ function getQuestionSlug() {
 
     return null;
 }
-
+ let currentQuestion = getQuestionSlug();
 console.log("Current Question:", currentQuestion);
 
 
@@ -133,8 +133,7 @@ document.addEventListener("visibilitychange", () => {
 
 setInterval(() => {
 
-    const newQuestion =
-        window.location.href.split("/")[4];
+    const newQuestion = getQuestionSlug();
 
     // SAME QUESTION
     if (newQuestion === currentQuestion) {

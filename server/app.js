@@ -1,9 +1,10 @@
 const express=require('express');
 const cors=require('cors');
 const route=require('./src/routes/routes');
-// const connectDB=require('./src/db/connection')
+require("dotenv").config();
+const connectDB=require('./src/db/connection')
 
-// connectDB();
+connectDB();
 
 const app=express();
 

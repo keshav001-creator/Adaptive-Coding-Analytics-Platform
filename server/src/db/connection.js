@@ -1,14 +1,16 @@
-// const db=require("./config")
+const mongoose=require("mongoose")
 
 
-// async function connectDB() {
-//   try {
-//     const [rows] = await db.query("SELECT 1");
-//     console.log("MySQL connected");
-//   } catch (err) {
-//     console.error("DB connection failed ", err);
-//   }
-// }
+async function connectDB(){
+
+    try{
+        await mongoose.connect(process.env.MONGO_URI)
+        console.log("Connection to database successfull")
+    
+    }catch(err){
+        console.log("or while connecting to DB",err)
+    }
+}
 
 
-// module.exports=connectDB
+module.exports=connectDB

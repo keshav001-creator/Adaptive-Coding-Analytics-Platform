@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@google/genai": "^2.6.0",
+    "mongoose": "^9.6.2"
+  }
+}
