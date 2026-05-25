@@ -5,4 +5,7 @@ const {logAttempt}=require("../controller/attempt.controller");
 
 
 route.post("/attempt",logAttempt);
+
+
+
 module.exports=route;
