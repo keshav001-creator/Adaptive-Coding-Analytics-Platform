@@ -14,22 +14,22 @@ const Dashboard = () => {
     const kpis = [
         {
             label: "Total Questions",
-            value: 42,
+            value: questions.length,
             sub: "Questions tracked so far",
         },
         {
             label: "High Priority",
-            value: 6,
+            value: questions.filter((q) => q.priority === "HIGH").length,
             sub: "Need revision soon",
         },
         {
             label: "In Progress",
-            value: 12,
+            value: questions.filter((q) => q.priority === "MEDIUM").length,
             sub: "Currently revising",
         },
         {
             label: "Completed",
-            value: 24,
+            value: questions.filter((q) => q.priority === "LOW").length,
             sub: "Solved and stable",
         },
     ];
@@ -54,6 +54,14 @@ const Dashboard = () => {
 
     useEffect(() => {
         fetchQuestions();
+
+        const interval = setInterval(() => {
+
+            fetchQuestions();
+
+        }, 3000);
+
+        return () => clearInterval(interval);
     }, []);
 
     const filteredQuestions = questions.filter((q) => {
@@ -123,7 +131,7 @@ const Dashboard = () => {
                 ))}
             </div>
 
-            {/* QUESTION LIST (MAIN FOCUS) */}
+
             {/* QUESTION LIST (MAIN FOCUS) */}
             <div className="mt-8">
 
@@ -186,7 +194,7 @@ const Dashboard = () => {
                     {questions.map((q, index) => (
                         <div
                             key={q._id}
-                            onClick={() => navigate(`/${q.name}/${q.id}`)}
+                            onClick={() => navigate(`/${q.name}`)}
                             className="bg-[#111827] border border-gray-800 rounded-xl p-4 flex justify-between items-center hover:bg-[#141c2b] transition"
                         >
 

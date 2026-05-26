@@ -33,6 +33,7 @@ let failedAttempts = 0;
 let alreadyDetected = false;
 
 
+
 // ---------------- FUNCTION TO SEND / PRINT DATA ----------------
 
 function finalizeQuestionSession() {
