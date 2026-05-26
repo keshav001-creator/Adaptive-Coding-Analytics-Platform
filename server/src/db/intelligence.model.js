@@ -21,7 +21,7 @@ const intelligenceSchema = new mongoose.Schema({
     },
 
     trendAnalysis: {
-        type: String
+        type: Array
     }
 
 }, { timestamps: true });

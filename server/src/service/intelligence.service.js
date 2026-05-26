@@ -77,8 +77,7 @@ async function logIntelligence(question) {
         console.log("behaviourSummary:",behaviourSummary);
 
             
-        return behaviourSummary ; ;
-
+        return behaviourSummary ;
     }
 
     catch (error) {

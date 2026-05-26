@@ -85,6 +85,8 @@ async function logAttempt(req, res) {
 
         const parsedAI = JSON.parse(aiResponse);
 
+        const trendPoints=parsedAI.trendAnalysis.split(".").filter(item => item.trim() !== "");
+
         await intelligenceModel.findOneAndUpdate(
 
             { question: req.body.question },
@@ -94,7 +96,7 @@ async function logAttempt(req, res) {
                 priority: parsedAI.priority,
                 revisionGapDays: parsedAI.revisionGapDays,
                 recommendation: parsedAI.recommendation,
-                trendAnalysis: parsedAI.trendAnalysis
+                trendAnalysis: trendPoints
             },
             {
                 upsert: true
@@ -197,18 +199,23 @@ async function getQuestionLogs(req, res) {
     }
 }
 
-async function getQuestionByName(questionName) {
+async function getQuestionByName(req,res) {
 
     try {
+
+        const { questionName } = req.params;
         const questionLogs = await questionLogModel.find({ question: questionName }).sort({ revisionNumber: 1 });
 
         const intelligenceData = await intelligenceModel.findOne({ question: questionName });
 
-        if(intelligenceData || questionLogs.length === 0){
+        if(questionLogs.length === 0){
             return {
-                message:"No logs found for this question. Please log an attempt for this question to get intelligence insights."
+                questions:[]
             }
         }
+
+        console.log("Question Logs:",questionLogs);
+        console.log("Intelligence Data:",intelligenceData);
         res.status(200).json({ questionLogs, intelligenceData });
 
         

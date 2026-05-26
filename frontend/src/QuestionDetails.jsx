@@ -1,34 +1,73 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import axios from "./api/axios"
 
 const QuestionDetails = () => {
     const navigate = useNavigate();
-
     const { questionName } = useParams();
 
-    // DUMMY DATA (replace with backend data later)
-    const question = {
-        name: questionName,
-        difficulty: "Medium",
-        priority: "HIGH",
-        recommendation:
-            "Retention decay detected. Revise duplicate handling logic and dry run the two-pointer approach once again.",
-        failedAttempts: 3,
-        totalRevisions: 7,
-        averageTime: "24s",
-        nextRevision: "3 Days",
-        currentStatus: "Needs Revision",
-    };
+    console.log("Question Name from URL:", questionName);
 
-    const trends = [
-        { revision: "Rev 1", time: "37s" },
-        { revision: "Rev 2", time: "15s" },
-        { revision: "Rev 3", time: "42s" },
-        { revision: "Rev 4", time: "24s" },
-        { revision: "Rev 5", time: "20s" },
-        { revision: "Rev 6", time: "16s" },
-        { revision: "Rev 7", time: "8s" },
-    ];
+    const [questionData, setQuestionData] = useState(null);
+
+    console.log("Question Data State:", questionData);
+    const trends = [];
+
+
+    //.......................FETCH QUESTION DETAILS FROM BACKEND (replace with actual API call later).......................//
+
+    const fetchQuestionData = async () => {
+
+        try {
+            // API call to fetch questions and set state
+
+            const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/questions/${questionName}`)
+
+            // setQuestions(response.data.questions);
+            console.log("Fetched Question Data:", response.data);
+            const { intelligenceData, questionLogs } = response.data;
+
+            const mergedQuestionData = {
+                // AI DATA
+                priority: intelligenceData.priority,
+                recommendation: intelligenceData.recommendation,
+                revisionGapDays: intelligenceData.revisionGapDays,
+                trendAnalysis: intelligenceData.trendAnalysis,
+
+                // QUESTION DATA
+                question: intelligenceData.question,
+
+                // OVERALL STATS
+                totalRevisions: questionLogs.length,
+
+                totalFailedAttempts: questionLogs.reduce(
+                    (acc, curr) => acc + curr.failedAttempts,
+                    0
+                ),
+
+                // FULL REVISION HISTORY
+                trends: questionLogs
+            };
+
+            setQuestionData(mergedQuestionData);
+
+        } catch (err) {
+            console.log("Error fetching question data:", err);
+        }
+    }
+
+    useEffect(() => {
+        fetchQuestionData();
+
+        const interval = setInterval(() => {
+
+            fetchQuestionData();
+
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, []);
+
 
     const getPriorityColor = (priority) => {
         switch (priority) {
@@ -58,7 +97,7 @@ const QuestionDetails = () => {
                     </button>
 
                     <h1 className="text-3xl font-bold tracking-wide">
-                        {question.name}
+                        {questionData?.question}
                     </h1>
 
                     <p className="text-gray-500 text-sm mt-1">
@@ -68,10 +107,10 @@ const QuestionDetails = () => {
 
                 <span
                     className={`px-4 py-2 rounded-full border text-sm font-medium ${getPriorityColor(
-                        question.priority
+                        questionData?.priority
                     )}`}
                 >
-                    {question.priority} PRIORITY
+                    {questionData?.priority}
                 </span>
             </div>
 
@@ -84,7 +123,7 @@ const QuestionDetails = () => {
                     </p>
 
                     <h2 className="text-3xl font-bold mt-3">
-                        {question.failedAttempts}
+                        {questionData?.totalFailedAttempts}
                     </h2>
                 </div>
 
@@ -94,7 +133,7 @@ const QuestionDetails = () => {
                     </p>
 
                     <h2 className="text-3xl font-bold mt-3">
-                        {question.totalRevisions}
+                        {questionData?.totalRevisions}
                     </h2>
                 </div>
 
@@ -104,7 +143,7 @@ const QuestionDetails = () => {
                     </p>
 
                     <h2 className="text-3xl font-bold mt-3">
-                        {question.averageTime}
+                        {questionData?.averageTime}
                     </h2>
                 </div>
 
@@ -114,7 +153,7 @@ const QuestionDetails = () => {
                     </p>
 
                     <h2 className="text-3xl font-bold mt-3">
-                        {question.nextRevision}
+                        {questionData?.revisionGapDays}
                     </h2>
                 </div>
             </div>
@@ -139,7 +178,7 @@ const QuestionDetails = () => {
                         </div>
 
                         <p className="text-gray-300 leading-7">
-                            {question.recommendation}
+                            {questionData?.recommendation}
                         </p>
                     </div>
 
@@ -148,27 +187,27 @@ const QuestionDetails = () => {
 
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-xl font-semibold">
-                                Revision Timeline
+                                Attempt Timeline
                             </h2>
 
                             <span className="text-xs text-gray-500">
-                                {trends.length} Revisions
+                                {questionData?.trends.length} Revisions
                             </span>
                         </div>
 
                         {/* SCROLLABLE AREA */}
                         <div className="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar">
 
-                            {trends.map((item, index) => (
+                            {questionData?.trends.map((item, index) => (
                                 <div
-                                    key={index}
+                                    key={item._id}
                                     className="flex items-center justify-between bg-[#0F172A] rounded-xl p-4 border border-gray-800 hover:border-blue-500/30 hover:bg-[#131d33] transition-all duration-300"
                                 >
 
                                     {/* LEFT */}
                                     <div>
                                         <p className="font-medium">
-                                            {item.revision}
+                                            {item.revisionNumber}
                                         </p>
 
                                         <p className="text-xs text-gray-500 mt-1">
@@ -179,7 +218,7 @@ const QuestionDetails = () => {
                                     {/* RIGHT */}
                                     <div className="text-right">
                                         <p className="text-blue-400 font-semibold">
-                                            {item.time}
+                                            {item.timeSpent} seconds
                                         </p>
 
                                         <p className="text-xs text-gray-500">
@@ -212,7 +251,7 @@ const QuestionDetails = () => {
                                 </p>
 
                                 <p className="font-medium mt-1">
-                                    {question.difficulty}
+                                    {questionData?.difficulty}
                                 </p>
                             </div>
 
@@ -222,7 +261,7 @@ const QuestionDetails = () => {
                                 </p>
 
                                 <p className="text-red-400 font-medium mt-1">
-                                    {question.currentStatus}
+                                    {questionData?.currentStatus}
                                 </p>
                             </div>
 
@@ -232,7 +271,7 @@ const QuestionDetails = () => {
                                 </p>
 
                                 <p className="font-medium mt-1">
-                                    {question.priority}
+                                    {questionData?.priority}
                                 </p>
                             </div>
 
@@ -247,24 +286,14 @@ const QuestionDetails = () => {
                         </h2>
 
                         <div className="space-y-4">
+                            {questionData?.trendAnalysis.map((insight, index) => (
+                                <div key={index} className="bg-[#0F172A] p-4 rounded-xl border border-gray-800">
+                                    <p className="text-sm text-gray-300">
+                                        {questionData?.trendAnalysis[index]}
+                                    </p>
+                                </div>
+                            ))}
 
-                            <div className="bg-[#0F172A] p-4 rounded-xl border border-gray-800">
-                                <p className="text-sm text-gray-300">
-                                    Solve time improved significantly after revision 4.
-                                </p>
-                            </div>
-
-                            <div className="bg-[#0F172A] p-4 rounded-xl border border-gray-800">
-                                <p className="text-sm text-gray-300">
-                                    Behavioral consistency still unstable.
-                                </p>
-                            </div>
-
-                            <div className="bg-[#0F172A] p-4 rounded-xl border border-gray-800">
-                                <p className="text-sm text-gray-300">
-                                    Recommended spaced repetition revision cycle detected.
-                                </p>
-                            </div>
 
                         </div>
                     </div>
