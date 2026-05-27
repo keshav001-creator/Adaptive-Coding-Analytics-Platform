@@ -32,13 +32,10 @@ async function logAttempt(req, res) {
             });
         }
 
-        const allquestionLogs = await questionLogModel.find({});
-        const allquestionIntelligence = await intelligenceModel.find({});
-
         const behaviourSummary = await logIntelligence(req.body.question);
 
-        
-           const prompt = `
+
+        const prompt = `
            
            You are an advanced DSA learning intelligence system.
            
@@ -52,15 +49,14 @@ async function logAttempt(req, res) {
            - No explanations outside JSON
            - Keep recommendations concise and actionable
            
-           ================================================
-           TASK 1: SINGLE QUESTION INTELLIGENCE
-           ================================================
-           
            Question Name:
            ${req.body.question}
            
            Behavior Summary for this question based on past attempts:
            ${behaviourSummary}
+
+           NOTE- if this is the message->"Not enough data to provide intelligence insights. Please log more attempts for this question."
+              Then return the message as it is without any change in trend analysis.
            
            Analyze the student's behavioral learning pattern carefully.
            
@@ -83,34 +79,6 @@ async function logAttempt(req, res) {
               - Mention solve speed, mistakes, retention, consistency, etc.
            
            ================================================
-           TASK 2: OVERALL LEARNING INTELLIGENCE
-           ================================================
-           
-           ALL QUESTION LOGS:
-           ${JSON.stringify(allquestionLogs)}
-           
-           PREVIOUS QUESTION INTELLIGENCE:
-           ${JSON.stringify(allquestionIntelligence)}
-           
-           Analyze the student's OVERALL DSA preparation pattern.
-           
-           Identify:
-           - Which topics/patterns are strong
-           - Which topics/patterns are weak
-           - Which areas need more revision
-           
-           Provide:
-           
-           1. Weak Areas
-              - Array of weak topics/concepts
-           
-           2. Strong Areas
-              - Array of strong topics/concepts
-           
-           3. Revision Strategy
-              - short actionable strategy for overall improvement
-           
-           ================================================
            RETURN JSON ONLY IN THIS FORMAT
            ================================================
            
@@ -121,13 +89,7 @@ async function logAttempt(req, res) {
                      "revisionGapDays": "",
                      "recommendation": "",
                      "trendAnalysis": "",
-                   },
-             "overallIntelligence": {
-               "weakAreas": [],
-               "strongAreas": [],
-               "revisionStrategy":"",
-           
-             }
+                   }
            }
            
            `;
@@ -141,7 +103,7 @@ async function logAttempt(req, res) {
 
         const parsedAI = JSON.parse(aiResponse);
 
-        const trendPoints = parsedAI.questionIntelligence.trendAnalysis.split(".").filter(item => item.trim() !== "");
+        // const trendPoints = parsedAI.questionIntelligence.trendAnalysis.split(".").filter(item => item.trim() !== "");
 
         await intelligenceModel.findOneAndUpdate(
 
@@ -152,19 +114,12 @@ async function logAttempt(req, res) {
                 priority: parsedAI.questionIntelligence.priority,
                 revisionGapDays: parsedAI.questionIntelligence.revisionGapDays,
                 recommendation: parsedAI.questionIntelligence.recommendation,
-                trendAnalysis: trendPoints
+                trendAnalysis: parsedAI.questionIntelligence.trendAnalysis
             },
             {
                 upsert: true
             }
 
-        );
-
-        await globalIntelligenceModel.findOneAndUpdate({},{
-            weakAreas: parsedAI.overallIntelligence.weakAreas,
-            strongAreas: parsedAI.overallIntelligence.strongAreas,
-            personalizedRecommendations: parsedAI.overallIntelligence.revisionStrategy
-        }, { upsert: true, returnDocument: "after" }
         );
 
         //send response to client
@@ -277,8 +232,8 @@ async function getQuestionByName(req, res) {
             }
         }
 
-        console.log("Question Logs:", questionLogs);
-        console.log("Intelligence Data:", intelligenceData);
+        // console.log("Question Logs:", questionLogs);
+        // console.log("Intelligence Data:", intelligenceData);
         res.status(200).json({ questionLogs, intelligenceData });
 
 
@@ -290,15 +245,15 @@ async function getQuestionByName(req, res) {
 
 }
 
-async function getGlobalAnalysis(req,res){
+async function getGlobalAnalysis(req, res) {
 
     try {
         const globalIntelligence = await globalIntelligenceModel.findOne({});
 
-        if(!globalIntelligence){
+        if (!globalIntelligence) {
             return res.status(200).json({ message: "No intelligence data available yet." });
         }
-        
+
         return res.status(200).json({
             weakAreas: globalIntelligence.weakAreas,
             strongAreas: globalIntelligence.strongAreas,
@@ -312,4 +267,84 @@ async function getGlobalAnalysis(req,res){
     }
 }
 
-module.exports = { logAttempt, getQuestionLogs, getQuestionByName, getGlobalAnalysis };
+
+async function fetchAllIntelligenceData(req, res) {
+
+    try {
+
+        const allquestionLogs = await questionLogModel.find({});
+        const allquestionIntelligence = await intelligenceModel.find({});
+
+
+        const compactLogs = allquestionLogs.map(log => ({
+            question: log.question,
+            timeSpent: log.timeSpent,
+            failedAttempts: log.failedAttempts,
+            revisionNumber: log.revisionNumber
+        }));
+
+        const prompt = `
+        ALL QUESTION LOGS:
+           ${JSON.stringify(compactLogs)}
+           
+           PREVIOUS QUESTION INTELLIGENCE:
+           ${JSON.stringify(allquestionIntelligence)}
+           
+           Analyze the student's OVERALL DSA preparation pattern.
+           
+           Identify:
+           - Which topics/patterns are strong
+           - Which topics/patterns are weak
+           - Which areas need more revision
+           
+           Provide:
+           
+           1. Weak Areas
+              - Array of weak topics/concepts
+           
+           2. Strong Areas
+              - Array of strong topics/concepts
+           
+           3. Revision Strategy
+              - short actionable strategy for overall improvement
+           
+           ================================================
+           RETURN JSON ONLY IN THIS FORMAT
+           ================================================
+           
+    {
+           "overallIntelligence": {
+               "weakAreas": [],
+               "strongAreas": [],
+               "revisionStrategy":"",
+             }
+     }
+        `
+
+        const aiResponse = await generateResponse(prompt);
+
+        console.log("Global AI Analysis:", aiResponse);
+
+        const parsedAI = JSON.parse(aiResponse);
+
+        const globalIntelligence = await globalIntelligenceModel.findOneAndUpdate({}, {
+            weakAreas: parsedAI.overallIntelligence.weakAreas,
+            strongAreas: parsedAI.overallIntelligence.strongAreas,
+            personalizedRecommendations: parsedAI.overallIntelligence.revisionStrategy
+        }, { upsert: true, returnDocument: "after" }
+        );
+
+
+        return res.status(200).json({ message: "Global intelligence data updated successfully.", aiResponse: aiResponse })
+
+
+
+    } catch (error) {
+        console.error("Error fetching intelligence data:", error);
+        res.status(500).json({ error: "Failed to fetch intelligence data" });
+
+    }
+
+}
+
+module.exports = { logAttempt, getQuestionLogs, getQuestionByName, getGlobalAnalysis, fetchAllIntelligenceData };
