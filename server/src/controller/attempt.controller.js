@@ -66,7 +66,7 @@ async function logAttempt(req, res) {
                    -Behavioral consistency still unstable.
                    -Recommended spaced repetition revision cycle detected.
         give short 2-3 line insights not more than that.
-        
+
         Return the response ONLY in this JSON format:
         
         {
@@ -74,7 +74,8 @@ async function logAttempt(req, res) {
           "priority": "",
           "revisionGapDays": "",
           "recommendation": "",
-          "trendAnalysis": ""
+          "trendAnalysis": "",
+
         }`;
 
         const aiResponse = await generateResponse(prompt);
