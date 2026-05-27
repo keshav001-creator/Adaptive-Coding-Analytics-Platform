@@ -13,7 +13,7 @@ function getQuestionSlug() {
 
     return null;
 }
- let currentQuestion = getQuestionSlug();
+let currentQuestion = getQuestionSlug();
 console.log("Current Question:", currentQuestion);
 
 
@@ -38,6 +38,9 @@ let alreadyDetected = false;
 
 function finalizeQuestionSession() {
 
+    if (!currentQuestion) {
+        return;
+    }
     // Add current active session time
     if (isTabActive) {
 
@@ -61,10 +64,10 @@ function finalizeQuestionSession() {
 
     // SEND DATA TO BACKEND
     chrome.runtime.sendMessage({
-    question: currentQuestion,
-    timeSpent: finalTimeInSeconds,
-    failedAttempts: failedAttempts
-});
+        question: currentQuestion,
+        timeSpent: finalTimeInSeconds,
+        failedAttempts: failedAttempts
+    });
 
 }
 
@@ -136,12 +139,9 @@ setInterval(() => {
 
     const newQuestion = getQuestionSlug();
 
-    // SAME QUESTION
     if (newQuestion === currentQuestion) {
         return;
     }
-
-    // NEW QUESTION DETECTED
 
     console.log("Question Changed");
 
@@ -150,7 +150,6 @@ setInterval(() => {
     resetTracking(newQuestion);
 
 }, 1000);
-
 
 
 // ---------------- PAGE CLOSE / REFRESH ----------------

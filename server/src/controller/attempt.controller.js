@@ -2,6 +2,7 @@ const questionLogModel = require("../db/model");
 const logIntelligence = require("../service/intelligence.service");
 const generateResponse = require("../AIService");
 const intelligenceModel = require("../db/intelligence.model");
+const globalIntelligenceModel = require("../db/globalintelligence.model");
 
 
 
@@ -31,52 +32,106 @@ async function logAttempt(req, res) {
             });
         }
 
+        const allquestionLogs = await questionLogModel.find({});
+        const allquestionIntelligence = await intelligenceModel.find({});
+
         const behaviourSummary = await logIntelligence(req.body.question);
 
-        const prompt = `
+        
+           const prompt = `
+           
+           You are an advanced DSA learning intelligence system.
+           
+           You must analyze BOTH:
+           1. Single question behavioral intelligence
+           2. Overall DSA learning intelligence across all questions
+           
+           IMPORTANT:
+           - Return ONLY valid JSON
+           - No markdown
+           - No explanations outside JSON
+           - Keep recommendations concise and actionable
+           
+           ================================================
+           TASK 1: SINGLE QUESTION INTELLIGENCE
+           ================================================
+           
+           Question Name:
+           ${req.body.question}
+           
+           Behavior Summary for this question based on past attempts:
+           ${behaviourSummary}
+           
+           Analyze the student's behavioral learning pattern carefully.
+           
+           Provide:
+           
+           1. Revision Priority
+              - LOW
+              - MEDIUM
+              - HIGH
+           
+           2. Suggested Revision Gap
+              - Number of days after which revision should happen according to the forgetting curve and the student's performance
+           
+           3. Personalized Recommendation
+              - Short actionable recommendation
+           
+           4. Trend Analysis
+              - 2-3 short insights only
+              - Mention whether learning is improving, inconsistent, or declining
+              - Mention solve speed, mistakes, retention, consistency, etc.
+           
+           ================================================
+           TASK 2: OVERALL LEARNING INTELLIGENCE
+           ================================================
+           
+           ALL QUESTION LOGS:
+           ${JSON.stringify(allquestionLogs)}
+           
+           PREVIOUS QUESTION INTELLIGENCE:
+           ${JSON.stringify(allquestionIntelligence)}
+           
+           Analyze the student's OVERALL DSA preparation pattern.
+           
+           Identify:
+           - Which topics/patterns are strong
+           - Which topics/patterns are weak
+           - Which areas need more revision
+           
+           Provide:
+           
+           1. Weak Areas
+              - Array of weak topics/concepts
+           
+           2. Strong Areas
+              - Array of strong topics/concepts
+           
+           3. Revision Strategy
+              - short actionable strategy for overall improvement
+           
+           ================================================
+           RETURN JSON ONLY IN THIS FORMAT
+           ================================================
+           
+           {
+             "questionIntelligence": {
+                     "question":"${req.body.question}",
+                     "priority": "",
+                     "revisionGapDays": "",
+                     "recommendation": "",
+                     "trendAnalysis": "",
+                   },
+             "overallIntelligence": {
+               "weakAreas": [],
+               "strongAreas": [],
+               "revisionStrategy":"",
+           
+             }
+           }
+           
+           `;
 
-        You are an advanced DSA learning intelligence system.
-        
-        Your job is to analyze a student's behavioral learning pattern for a coding question.
-        
-        Question Name:
-        ${req.body.question}
-        
-        Behavior Summary:
-        ${behaviourSummary.join("\n")}
-        
-        Analyze the student's learning behavior carefully.
-        
-        Based on the behavioral history, provide:
-        
-        1. Revision Priority
-           - LOW
-           - MEDIUM
-           - HIGH
-        
-        2. Suggested Revision Gap
-           - In how many days should the student revise this question again?
-        
-        3. Personalized Recommendation
-           - Give a short actionable recommendation for improving retention.
-
-        4. Trend Analysis
-        Give the insights of the trend of the student's learning pattern for this question. Is it improving, declining, or inconsistent?
-        For example-Solve time improved significantly after revision 4.
-                   -Behavioral consistency still unstable.
-                   -Recommended spaced repetition revision cycle detected.
-        give short 2-3 line insights not more than that.
-
-        Return the response ONLY in this JSON format:
-        
-        {
-          "question":"${req.body.question}",
-          "priority": "",
-          "revisionGapDays": "",
-          "recommendation": "",
-          "trendAnalysis": "",
-
-        }`;
 
         const aiResponse = await generateResponse(prompt);
 
@@ -86,7 +141,7 @@ async function logAttempt(req, res) {
 
         const parsedAI = JSON.parse(aiResponse);
 
-        const trendPoints=parsedAI.trendAnalysis.split(".").filter(item => item.trim() !== "");
+        const trendPoints = parsedAI.questionIntelligence.trendAnalysis.split(".").filter(item => item.trim() !== "");
 
         await intelligenceModel.findOneAndUpdate(
 
@@ -94,15 +149,22 @@ async function logAttempt(req, res) {
 
             {
                 question: req.body.question,
-                priority: parsedAI.priority,
-                revisionGapDays: parsedAI.revisionGapDays,
-                recommendation: parsedAI.recommendation,
+                priority: parsedAI.questionIntelligence.priority,
+                revisionGapDays: parsedAI.questionIntelligence.revisionGapDays,
+                recommendation: parsedAI.questionIntelligence.recommendation,
                 trendAnalysis: trendPoints
             },
             {
                 upsert: true
             }
 
+        );
+
+        await globalIntelligenceModel.findOneAndUpdate({},{
+            weakAreas: parsedAI.overallIntelligence.weakAreas,
+            strongAreas: parsedAI.overallIntelligence.strongAreas,
+            personalizedRecommendations: parsedAI.overallIntelligence.revisionStrategy
+        }, { upsert: true, returnDocument: "after" }
         );
 
         //send response to client
@@ -200,7 +262,7 @@ async function getQuestionLogs(req, res) {
     }
 }
 
-async function getQuestionByName(req,res) {
+async function getQuestionByName(req, res) {
 
     try {
 
@@ -209,18 +271,18 @@ async function getQuestionByName(req,res) {
 
         const intelligenceData = await intelligenceModel.findOne({ question: questionName });
 
-        if(questionLogs.length === 0){
+        if (questionLogs.length === 0) {
             return {
-                questions:[]
+                questions: []
             }
         }
 
-        console.log("Question Logs:",questionLogs);
-        console.log("Intelligence Data:",intelligenceData);
+        console.log("Question Logs:", questionLogs);
+        console.log("Intelligence Data:", intelligenceData);
         res.status(200).json({ questionLogs, intelligenceData });
 
-        
-    }catch (error) {
+
+    } catch (error) {
         console.error("Error fetching question logs:", error);
         res.status(500).json({ error: "Failed to fetch question logs" });
     }
@@ -228,4 +290,26 @@ async function getQuestionByName(req,res) {
 
 }
 
-module.exports = { logAttempt, getQuestionLogs, getQuestionByName };
+async function getGlobalAnalysis(req,res){
+
+    try {
+        const globalIntelligence = await globalIntelligenceModel.findOne({});
+
+        if(!globalIntelligence){
+            return res.status(200).json({ message: "No intelligence data available yet." });
+        }
+        
+        return res.status(200).json({
+            weakAreas: globalIntelligence.weakAreas,
+            strongAreas: globalIntelligence.strongAreas,
+            personalizedRecommendations: globalIntelligence.personalizedRecommendations
+        });
+
+    }
+    catch (error) {
+        console.error("Error fetching global intelligence:", error);
+        res.status(500).json({ error: "Failed to fetch global intelligence" });
+    }
+}
+
+module.exports = { logAttempt, getQuestionLogs, getQuestionByName, getGlobalAnalysis };

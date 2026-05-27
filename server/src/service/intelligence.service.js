@@ -12,7 +12,7 @@ async function logIntelligence(question) {
             return [];
         }
                
-        console.log("History Of Question:",historyOfQuestion);
+        // console.log("History Of Question:",historyOfQuestion);
 
         if(historyOfQuestion.length <2){
             return {

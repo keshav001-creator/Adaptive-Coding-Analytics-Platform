@@ -22,37 +22,25 @@ const QuestionDetails = () => {
 
             const mergedQuestionData = {
                 priority: intelligenceData.priority,
-                recommendation: intelligenceData.recommendation || "Strong pattern recognition developing. Ready for advanced variations.",
+                recommendation: intelligenceData.recommendation ,
                 revisionGapDays: intelligenceData.revisionGapDays,
-                trendAnalysis: intelligenceData.trendAnalysis || ["Consistent improvement", "Time reduced by 50%", "Concept mastery achieved"],
+                trendAnalysis: intelligenceData.trendAnalysis ,
                 question: intelligenceData.question || questionName,
-                currentStatus: intelligenceData.currentStatus || "completed",
-                createdAt: intelligenceData.createdAt || "2026-05-27T12:00:00Z",
+                // currentStatus: intelligenceData.currentStatus || "completed",
+                createdAt: intelligenceData.createdAt,
                 totalRevisions: questionLogs.length,
                 totalFailedAttempts: questionLogs.reduce((acc, curr) => acc + (curr.failedAttempts || 0), 0),
-                averageTime: intelligenceData.averageTime || "15m",
+                averageTime: questionLogs.length > 0 ? `${Math.round(questionLogs.reduce((acc, curr) => acc + (curr.timeSpent || 0), 0) / questionLogs.length)}s` : "0s",
                 trends: questionLogs
             };
+
+            console.log("Intelligence Data:", intelligenceData);
+            console.log("Question Logs:", questionLogs);
+
+            console.log("Merged Question Data:", mergedQuestionData);
             setQuestionData(mergedQuestionData);
         } catch (err) {
             console.log("Using structured fallback mock data due to fetch error", err);
-            const fallbackData = {
-                question: questionName || "3sum",
-                priority: "HIGH",
-                currentStatus: "completed",
-                totalFailedAttempts: 3,
-                totalRevisions: 3,
-                averageTime: "15m",
-                revisionGapDays: 14,
-                recommendation: "Strong pattern recognition developing. Ready for advanced two-pointer variations.",
-                trendAnalysis: ["Consistent improvement", "Time reduced by 50%", "Concept mastery achieved"],
-                trends: [
-                    { _id: "rev1", revisionNumber: 1, timeSpent: 42.462, failedAttempts: 2 },
-                    { _id: "rev2", revisionNumber: 2, timeSpent: 22.791, failedAttempts: 1 },
-                    { _id: "rev3", revisionNumber: 3, timeSpent: 12.662, failedAttempts: 0 }
-                ]
-            };
-            setQuestionData(fallbackData);
         }
     };
 
@@ -67,13 +55,6 @@ const QuestionDetails = () => {
             case "LOW": return "bg-[#142A1D] text-[#10B981] border-[#10B981]/20";
             default: return "bg-slate-800 text-slate-400 border-slate-700";
         }
-    };
-
-    const getStatusBadgeClass = (status) => {
-        if (status?.toLowerCase() === "completed" || status?.toLowerCase() === "success") {
-            return "bg-[#132521] text-[#10B981] border-[#10B981]/20";
-        }
-        return "bg-[#2A141A] text-[#EF4444] border-[#EF4444]/20";
     };
 
     // --------------------------------------------------------
@@ -149,9 +130,9 @@ const QuestionDetails = () => {
                             <span className={`px-3 py-1 text-xs font-bold rounded-md border tracking-wide uppercase ${getPriorityBadgeClass(questionData?.priority)}`}>
                                 {questionData?.priority}
                             </span>
-                            <span className={`px-3 py-1 text-xs font-bold rounded-md border tracking-wide uppercase ${getStatusBadgeClass(questionData?.currentStatus)}`}>
+                            {/* <span className={`px-3 py-1 text-xs font-bold rounded-md border tracking-wide uppercase ${getStatusBadgeClass(questionData?.currentStatus)}`}>
                                 {questionData?.currentStatus}
-                            </span>
+                            </span> */}
                         </div>
                         <p className="text-sm text-slate-500 font-medium mt-1.5">
                             {questionData?.createdAt && `Added on ${new Date(questionData.createdAt).toLocaleDateString()}`}
@@ -195,7 +176,7 @@ const QuestionDetails = () => {
                         <div>
                             <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Avg Solve Time</p>
                             <h3 className="text-3xl font-bold tracking-tight text-white mt-2 font-mono">
-                                {questionData?.averageTime || "15m"}
+                                {questionData?.averageTime}
                             </h3>
                         </div>
                         <div className="p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/10 text-yellow-400">
