@@ -23,13 +23,20 @@ async function logAttempt(req, res) {
                 revisionNumber: questionExits.revisionNumber + 1
             })
 
-
         } else {
             await questionLogModel.create({
                 question: req.body.question,
                 timeSpent: req.body.timeSpent,
                 failedAttempts: req.body.failedAttempts
             });
+        }
+
+        const totalQuestions =
+            await questionLogModel.distinct("question");
+
+        if (totalQuestions % 5 === 0) {
+
+            await fetchAllIntelligenceData();
         }
 
         const behaviourSummary = await logIntelligence(req.body.question);
@@ -40,8 +47,7 @@ async function logAttempt(req, res) {
            You are an advanced DSA learning intelligence system.
            
            You must analyze BOTH:
-           1. Single question behavioral intelligence
-           2. Overall DSA learning intelligence across all questions
+            Single question behavioral intelligence
            
            IMPORTANT:
            - Return ONLY valid JSON
@@ -268,7 +274,7 @@ async function getGlobalAnalysis(req, res) {
 }
 
 
-async function fetchAllIntelligenceData(req, res) {
+async function fetchAllIntelligenceData() {
 
     try {
 
@@ -335,14 +341,13 @@ async function fetchAllIntelligenceData(req, res) {
         );
 
 
-        return res.status(200).json({ message: "Global intelligence data updated successfully.", aiResponse: aiResponse })
+        return parsedAI.overallIntelligence;
 
 
 
     } catch (error) {
         console.error("Error fetching intelligence data:", error);
-        res.status(500).json({ error: "Failed to fetch intelligence data" });
-
+        return null;
     }
 
 }
