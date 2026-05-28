@@ -31,15 +31,34 @@ async function logAttempt(req, res) {
             });
         }
 
-        const totalQuestions =
-            await questionLogModel.distinct("question");
+        const totalQuestions = await questionLogModel.distinct("question");
 
-        if (totalQuestions % 5 === 0) {
+        if (totalQuestions.length % 5 === 0) {
 
             await fetchAllIntelligenceData();
         }
 
         const behaviourSummary = await logIntelligence(req.body.question);
+
+        if(behaviourSummary.message){
+
+            await intelligenceModel.findOneAndUpdate(
+
+            { question: req.body.question },
+
+            {
+                question: req.body.question,
+                priority: "LOW",
+                revisionGapDays: 3,
+                recommendation: "First attempt recorded. Revisit this question once more within 2-3 days to build retention.",
+                trendAnalysis: behaviourSummary.message
+            },
+            {
+                upsert: true
+            }
+        );
+         return res.status(200).json({ message: "Question log saved successfully", intelligenceMessage: behaviourSummary.message });
+        }
 
 
        const prompt = `
@@ -56,10 +75,6 @@ async function logAttempt(req, res) {
            - Return ONLY valid JSON
            - No explanations, no markdown
            - Keep outputs concise
-           
-           If behavior summary equals:
-           "Not enough data to provide intelligence insights. Please log more attempts for this question."
-           → return it as-is in trendAnalysis and leave other fields empty.
            
            Output format:
            {

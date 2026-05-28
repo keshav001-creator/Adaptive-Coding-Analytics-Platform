@@ -3,7 +3,8 @@
     "name": "DSA Tracker",
     "version": "1.0",
     "permissions": [
-        "activeTab"
+        "activeTab",
+         "tabs"
     ],
     "host_permissions": [
         "http://localhost:5000/*"

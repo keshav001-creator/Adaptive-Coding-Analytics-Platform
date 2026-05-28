@@ -15,6 +15,8 @@ async function logIntelligence(question) {
         // console.log("History Of Question:",historyOfQuestion);
 
         if(historyOfQuestion.length <2){
+
+            console.log("History Of Question:",historyOfQuestion.length);
             return {
                 message:"Not enough data to provide intelligence insights. Please log more attempts for this question."
             }

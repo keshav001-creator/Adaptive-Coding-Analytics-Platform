@@ -67,7 +67,11 @@ function finalizeQuestionSession() {
         question: currentQuestion,
         timeSpent: finalTimeInSeconds,
         failedAttempts: failedAttempts
-    });
+    },
+        (response)=>{
+            console.log("Response from Background:", response);
+        }
+    );
 
 }
 
