@@ -42,62 +42,35 @@ async function logAttempt(req, res) {
         const behaviourSummary = await logIntelligence(req.body.question);
 
 
-        const prompt = `
+       const prompt = `
+           You are a DSA learning intelligence system.
            
-           You are an advanced DSA learning intelligence system.
+           Analyze student performance for a single question using past attempt data.
            
-           You must analyze BOTH:
-            Single question behavioral intelligence
+           Question: ${req.body.question}
+           
+           Behavior Summary:
+           ${behaviourSummary}
            
            IMPORTANT:
            - Return ONLY valid JSON
-           - No markdown
-           - No explanations outside JSON
-           - Keep recommendations concise and actionable
+           - No explanations, no markdown
+           - Keep outputs concise
            
-           Question Name:
-           ${req.body.question}
+           If behavior summary equals:
+           "Not enough data to provide intelligence insights. Please log more attempts for this question."
+           → return it as-is in trendAnalysis and leave other fields empty.
            
-           Behavior Summary for this question based on past attempts:
-           ${behaviourSummary}
-
-           NOTE- if this is the message->"Not enough data to provide intelligence insights. Please log more attempts for this question."
-              Then return the message as it is without any change in trend analysis.
-           
-           Analyze the student's behavioral learning pattern carefully.
-           
-           Provide:
-           
-           1. Revision Priority
-              - LOW
-              - MEDIUM
-              - HIGH
-           
-           2. Suggested Revision Gap
-              - Number of days after which revision should happen according to the forgetting curve and the student's performance
-           
-           3. Personalized Recommendation
-              - Short actionable recommendation
-           
-           4. Trend Analysis
-              - 2-3 short insights only
-              - Mention whether learning is improving, inconsistent, or declining
-              - Mention solve speed, mistakes, retention, consistency, etc.
-           
-           ================================================
-           RETURN JSON ONLY IN THIS FORMAT
-           ================================================
-           
+           Output format:
            {
              "questionIntelligence": {
-                     "question":"${req.body.question}",
-                     "priority": "",
-                     "revisionGapDays": "",
-                     "recommendation": "",
-                     "trendAnalysis": "",
-                   }
+               "question": "${req.body.question}",
+               "priority": "",
+               "revisionGapDays": "",
+               "recommendation": "",
+               "trendAnalysis": ""
+             }
            }
-           
            `;
 
 
@@ -281,13 +254,20 @@ async function fetchAllIntelligenceData() {
         const allquestionLogs = await questionLogModel.find({});
         const allquestionIntelligence = await intelligenceModel.find({});
 
+        const compactLogs = await questionLogModel.aggregate([
+            {
+                $group: {
+                    _id: "$question",
 
-        const compactLogs = allquestionLogs.map(log => ({
-            question: log.question,
-            timeSpent: log.timeSpent,
-            failedAttempts: log.failedAttempts,
-            revisionNumber: log.revisionNumber
-        }));
+                    totalAttempts: { $sum: 1 },
+                    avgTimeSpent: { $avg: "$timeSpent" },
+                    avgFailedAttempts: { $avg: "$failedAttempts" },
+
+                    bestTime: { $min: "$timeSpent" },
+                    worstTime: { $max: "$timeSpent" }
+                }
+            }
+        ]);
 
         const prompt = `
         ALL QUESTION LOGS:
@@ -314,9 +294,7 @@ async function fetchAllIntelligenceData() {
            3. Revision Strategy
               - short actionable strategy for overall improvement
            
-           ================================================
            RETURN JSON ONLY IN THIS FORMAT
-           ================================================
            
     {
            "overallIntelligence": {

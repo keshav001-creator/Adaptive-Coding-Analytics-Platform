@@ -2,11 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     Search,
-    SlidersHorizontal,
     Activity,
     Target,
-    Clock,
-    CheckCircle2,
     User,
     ChevronRight,
     Flame,
@@ -17,19 +14,12 @@ import {
 import axios from "./api/axios";
 
 const Dashboard = () => {
-    
-
     // --------------------------------------------------------
     const [questions, setQuestions] = useState([]);
     const [aiAnalysis, setAiAnalysis] = useState(null);
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("ALL");
-
-    // Static Insights Data for the Sidebar
-    const weakAreas = ["Edge case handling", "Sorting logic", "Overlap detection", "BFS traversal", "Queue operations", "Window resize logic"];
-    const strongImprovements = ["Two-pointer technique", "Time optimization", "Problem recognition", "Pattern recognition"];
-
 
     // --------------------------------------------------------
     // API DATA FETCHING
@@ -62,13 +52,10 @@ const Dashboard = () => {
         fetchAIanalysis();
     }, []);
 
-
     // --------------------------------------------------------
     // UTILITY CALCULATIONS & FILTERING
     const totalCount = questions.length;
     const highPriorityCount = questions.filter((q) => q.priority === "HIGH").length;
-    // const inProgressCount = questions.filter((q) => q.status?.toLowerCase() === "in progress" || q.priority === "MEDIUM").length;
-    // const completedCount = questions.filter((q) => q.status?.toLowerCase() === "completed" || q.priority === "LOW").length;
 
     const filteredQuestions = questions.filter((q) => {
         const matchesSearch = q.question?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -88,17 +75,6 @@ const Dashboard = () => {
                 return "bg-slate-800 text-slate-400 border-slate-700";
         }
     };
-
-    // const getStatusBadgeClass = (status) => {
-    //     switch (status?.toLowerCase()) {
-    //         case "completed":
-    //             return "bg-[#132521] text-[#10B981] border-[#10B981]/20";
-    //         case "in progress":
-    //             return "bg-[#1D2433] text-[#3B82F6] border-[#3B82F6]/20";
-    //         default:
-    //             return "bg-[#1A1D24] text-slate-400 border-slate-800";
-    //     }
-    // };
 
     return (
         <div className="min-h-screen bg-[#070B13] text-[#F3F4F6] font-sans antialiased selection:bg-blue-500/30 px-8 py-4">
@@ -129,7 +105,6 @@ const Dashboard = () => {
                             className="w-full bg-[#0E1526] border border-[#1E293B]/60 rounded-xl pl-10 pr-4 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all duration-200"
                         />
                     </div>
-        
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -149,7 +124,7 @@ const Dashboard = () => {
                 <div className="lg:col-span-8 flex flex-col gap-6">
 
                     {/* KPI CARDS GRID */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         {/* Total Tracked */}
                         <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-5 relative overflow-hidden group transition-all duration-200 hover:border-[#1E2F4F]">
                             <div className="flex justify-between items-start">
@@ -177,57 +152,10 @@ const Dashboard = () => {
                             </div>
                             <p className="text-xs text-slate-500 mt-3">Needs attention</p>
                         </div>
-
-                        {/* In Progress */}
-                        {/* <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-5 relative overflow-hidden group transition-all duration-200 hover:border-[#1E2F4F]">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">In Progress</p>
-                                    <h3 className="text-3xl font-bold tracking-tight text-white mt-2">{inProgressCount || 2}</h3>
-                                </div>
-                                <div className="p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/10 text-yellow-400">
-                                    <Clock className="w-5 h-5" />
-                                </div>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-3">Currently solving</p>
-                        </div> */}
-
-                        {/* Completed */}
-                        {/* <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-5 relative overflow-hidden group transition-all duration-200 hover:border-[#1E2F4F]">
-                            <div className="flex justify-between items-start">
-                                <div>
-                                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Completed</p>
-                                    <h3 className="text-3xl font-bold tracking-tight text-white mt-2">{completedCount || 4}</h3>
-                                </div>
-                                <div className="p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 text-emerald-400">
-                                    <CheckCircle2 className="w-5 h-5" />
-                                </div>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-3">Mastered</p>
-                        </div> */}
-                    </div>
-
-                    {/* ACTIVITY HEATMAP SECTION */}
-                    <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-5">
-                        <div className="flex items-center justify-between mb-4">
-                            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Activity Heatmap</h4>
-                            <span className="text-xs text-slate-500">Last 30 days</span>
-                        </div>
-                        <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                            {Array.from({ length: 28 }).map((_, i) => (
-                                <div
-                                    key={i}
-                                    className={`w-3.5 h-3.5 rounded-sm transition-all duration-150 ${i === 7
-                                            ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
-                                            : "bg-[#121A2A] hover:bg-[#18243A]"
-                                        }`}
-                                />
-                            ))}
-                        </div>
                     </div>
 
                     {/* QUESTION LOG CONTAINER */}
-                    <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-6 flex flex-col min-h-[480px]">
+                    <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-6 flex flex-col flex-1 min-h-[550px]">
                         <div className="flex items-center justify-between border-b border-[#152035] pb-4 mb-5">
                             <div>
                                 <h2 className="text-lg font-bold tracking-tight text-white">Question Log</h2>
@@ -250,7 +178,7 @@ const Dashboard = () => {
                         </div>
 
                         {/* SCROLLABLE LIST WRAPPER */}
-                        <div className="flex-1 overflow-y-auto space-y-2.5 max-h-[500px] pr-1">
+                        <div className="flex-1 overflow-y-auto space-y-2.5 max-h-[580px] pr-1">
                             {filteredQuestions.length === 0 ? (
                                 <div className="h-full flex flex-col items-center justify-center text-slate-500 py-20">
                                     <Search className="w-8 h-8 text-slate-600 mb-3" />
@@ -266,18 +194,11 @@ const Dashboard = () => {
                                     >
                                         <div className="flex flex-col gap-1.5">
                                             <h3 className="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition-colors capitalize">
-                                                {q.question }
+                                                {q.question}
                                             </h3>
-                                            <div className="flex items-center gap-2">
-                                                {/* <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded-md border tracking-wider ${getStatusBadgeClass(q.status)}`}>
-                                                    {q.status || "not started"}
-                                                </span> */}
-                                                
-                                            </div>
                                         </div>
 
                                         <div className="flex items-center gap-5">
-                            
                                             {/* Priority Indicator */}
                                             <div className="flex items-center gap-2">
                                                 <span className={`px-2.5 py-0.5 text-[10px] font-bold rounded-md border tracking-wider uppercase ${getPriorityBadgeClass(q.priority)}`}>
@@ -295,7 +216,7 @@ const Dashboard = () => {
 
                 {/* RIGHT HAND SIDEBAR - AI LEARNING INSIGHTS */}
                 <div className="lg:col-span-4 flex flex-col gap-4">
-                    <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-6 flex flex-col gap-6">
+                    <div className="bg-[#0B111E] border border-[#152035] rounded-2xl p-6 flex flex-col gap-6 h-full">
 
                         {/* Title block */}
                         <div className="flex items-center gap-2 border-b border-[#152035] pb-4">
@@ -306,7 +227,6 @@ const Dashboard = () => {
                         {/* Weak Areas */}
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-[#EF4444] uppercase tracking-wider">
-                                <img src="" alt="" className="hidden" /> {/* structure alignment guard */}
                                 <Target className="w-4 h-4" />
                                 <span>Weak Areas</span>
                             </div>
@@ -341,24 +261,21 @@ const Dashboard = () => {
                         </div>
 
                         {/* Revision Strategy */}
-
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-[#3B82F6] uppercase tracking-wider">
                                 <Lightbulb className="w-4 h-4" />
                                 <span>Revision Strategy</span>
                             </div>
-                            <p className="text-sm text-slate-400">
+                            <p className="text-sm text-slate-400 leading-relaxed">
                                 {aiAnalysis?.personalizedRecommendations || "No specific strategy recommended at this time. Focus on consistent practice and review of weak areas."}
                             </p>
                         </div>
-
-                        
                     </div>
                 </div>
             </main>
 
             {/* PLATFORM FOOTER */}
-            <footer className="max-w-[1600px] mx-auto pt-4 pb-12 border-t border-[#141C2F] mt-12 flex justify-between items-center text-[11px] font-medium text-slate-600">
+            <footer className="max-w-[1600px] mx-auto pt-4 pb-12 border-t border-[#141C2F] mt-12 flex justify-center items-center text-[11px] font-medium text-slate-600">
                 <div>DSA Tracker • Learning Intelligence System</div>
             </footer>
         </div>
