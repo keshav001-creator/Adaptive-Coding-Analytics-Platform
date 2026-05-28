@@ -26,10 +26,10 @@
 <h2>🛠️ Tech Stack</h2>
 
 <h3>Frontend Layer</h3>
-<!-- <ul>
+
   <li>React.js</li>
   <li>Tailwind CSS</li>
-</ul> -->
+
 
 <h3>Backend Layer</h3>
 <ul>
