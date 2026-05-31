@@ -31,37 +31,39 @@ async function logAttempt(req, res) {
             });
         }
 
-        const totalQuestions = await questionLogModel.distinct("question");
-
-        if (totalQuestions.length % 5 === 0) {
-
-            await fetchAllIntelligenceData();
-        }
-
+        //------------------QUESTIONS TRENDS ANALYSIS----------------------------//
         const behaviourSummary = await logIntelligence(req.body.question);
 
-        if(behaviourSummary.message){
+        if (behaviourSummary.message) {
 
             await intelligenceModel.findOneAndUpdate(
 
-            { question: req.body.question },
+                { question: req.body.question },
 
-            {
-                question: req.body.question,
-                priority: "LOW",
-                revisionGapDays: 3,
-                recommendation: "First attempt recorded. Revisit this question once more within 2-3 days to build retention.",
-                trendAnalysis: behaviourSummary.message
-            },
-            {
-                upsert: true
-            }
-        );
-         return res.status(200).json({ message: "Question log saved successfully", intelligenceMessage: behaviourSummary.message });
+                {
+                    question: req.body.question,
+                    priority: "LOW",
+                    revisionGapDays: 3,
+                    recommendation: "First attempt recorded. Revisit this question once more within 2-3 days to build retention.",
+                    trendAnalysis: behaviourSummary.message
+                },
+                {
+                    upsert: true
+                }
+            );
+            return res.status(200).json({ message: "Question log saved successfully", intelligenceMessage: behaviourSummary.message });
         }
 
 
-       const prompt = `
+        //-------------------QUESTION INTELLIGENCE UPDATE CHECK-------------------------------//
+
+        const AIanalysisCheckpoints = [2, 5, 10];
+
+        const currentQuestionAttempts = await questionLogModel.countDocuments({ question: req.body.question });
+
+        if (AIanalysisCheckpoints.includes(currentQuestionAttempts)) {
+
+            const prompt = `
            You are a DSA learning intelligence system.
            
            Analyze student performance for a single question using past attempt data.
@@ -88,36 +90,55 @@ async function logAttempt(req, res) {
            }
            `;
 
+            const aiResponse = await generateResponse(prompt);
 
-        const aiResponse = await generateResponse(prompt);
+            console.log("AI Response:", aiResponse);
 
-        // console.log("AI Response.....");
+            const parsedAI = JSON.parse(aiResponse);
 
-        console.log("AI Response:", aiResponse);
 
-        const parsedAI = JSON.parse(aiResponse);
+            //SAVE INTELLIGENCE DATA TO DB
 
-        // const trendPoints = parsedAI.questionIntelligence.trendAnalysis.split(".").filter(item => item.trim() !== "");
+            await intelligenceModel.findOneAndUpdate(
 
-        await intelligenceModel.findOneAndUpdate(
+                { question: req.body.question },
 
-            { question: req.body.question },
+                {
+                    question: req.body.question,
+                    priority: parsedAI.questionIntelligence.priority,
+                    revisionGapDays: parsedAI.questionIntelligence.revisionGapDays,
+                    recommendation: parsedAI.questionIntelligence.recommendation,
+                    trendAnalysis: parsedAI.questionIntelligence.trendAnalysis
+                },
+                {
+                    upsert: true
+                }
 
-            {
-                question: req.body.question,
-                priority: parsedAI.questionIntelligence.priority,
-                revisionGapDays: parsedAI.questionIntelligence.revisionGapDays,
-                recommendation: parsedAI.questionIntelligence.recommendation,
-                trendAnalysis: parsedAI.questionIntelligence.trendAnalysis
-            },
-            {
-                upsert: true
-            }
+            );
+        }
 
-        );
+        //-------------------GLOBAL INTELLIGENCE UPDATE CHECK-------------------------------//
+
+        const totalAttempts = await questionLogModel.countDocuments();
+
+        const state = await globalIntelligenceModel.findOne({ key: "global_intelligence" });
+
+        const lastProcessed = state?.lastProcessedCount || 0;
+
+        // trigger only when +5 new attempts happened
+        if (totalAttempts - lastProcessed >= 5) {
+
+            await fetchAllIntelligenceData();
+
+            await globalIntelligenceModel.findOneAndUpdate(
+                { key: "global_intelligence" },
+                { lastProcessedCount: totalAttempts },
+                { upsert: true }
+            );
+        }
 
         //send response to client
-        return res.status(200).json({ message: "Question log saved successfully", aiResponse: aiResponse });
+        return res.status(200).json({ message: "Question log saved successfully" });
 
     } catch (error) {
         console.error("Error saving question log:", error);

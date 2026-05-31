@@ -18,6 +18,19 @@ const QuestionDetails = () => {
     const { questionName } = useParams();
     const [questionData, setQuestionData] = useState(null);
 
+    const formatTime = (seconds) => {
+        if (!seconds) return "0m";
+
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+
+        return `${minutes}m`;
+    };
+
     const fetchQuestionData = async () => {
         try {
             const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/questions/${questionName}`);
@@ -32,9 +45,20 @@ const QuestionDetails = () => {
                 createdAt: intelligenceData.createdAt,
                 totalRevisions: questionLogs.length,
                 totalFailedAttempts: questionLogs.reduce((acc, curr) => acc + (curr.failedAttempts || 0), 0),
-                averageTime: questionLogs.length > 0 ? `${Math.round(questionLogs.reduce((acc, curr) => acc + (curr.timeSpent || 0), 0) / questionLogs.length)}s` : "0s",
+                averageTime: questionLogs.length > 0
+                    ? formatTime(
+                        Math.round(
+                            questionLogs.reduce((acc, curr) => acc + (curr.timeSpent || 0), 0)
+                            / questionLogs.length
+                        )
+                    )
+                    : "0m",
                 trends: questionLogs
             };
+
+            console.log("Fetched Intelligence Data:", intelligenceData);
+            console.log("Fetched Question Logs:", questionLogs);
+            console.log("Merged Question Data:", mergedQuestionData);
 
             setQuestionData(mergedQuestionData);
         } catch (err) {
@@ -64,7 +88,7 @@ const QuestionDetails = () => {
         let time = 0;
         if (typeof item.timeSpent === 'number') time = item.timeSpent;
         else if (typeof item.timeSpent === 'string') time = parseFloat(item.timeSpent) || 0;
-        
+
         const revNum = item.revisionNumber || (index + 1);
         return { time, revNum };
     });
@@ -80,18 +104,18 @@ const QuestionDetails = () => {
 
         let comparison = "baseline";
         let diffText = "";
-        
+
         if (index > 0) {
             const timeDiff = item.time - parsedTrends[index - 1].time;
-            
+
             // Math.round fixes the floating point precision bug (.0000000000023)
             const roundedDiff = Math.round(Math.abs(timeDiff));
 
             if (timeDiff < 0) {
-                comparison = "progress"; 
+                comparison = "progress";
                 diffText = `-${roundedDiff}s`;
             } else if (timeDiff > 0) {
-                comparison = "downfall"; 
+                comparison = "downfall";
                 diffText = `+${roundedDiff}s`;
             } else {
                 comparison = "stagnant";
@@ -103,7 +127,7 @@ const QuestionDetails = () => {
     });
 
     const pathD = chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-    
+
     const polygonPoints = chartPoints.length > 0
         ? `${chartPoints.map(p => `${p.x},${p.y}`).join(' ')} ${chartPoints[chartPoints.length - 1].x},35 ${chartPoints[0].x},35`
         : "";
@@ -241,7 +265,7 @@ const QuestionDetails = () => {
 
                             <line x1="5" y1="6" x2="95" y2="6" stroke="#1E293B" strokeWidth="0.15" strokeDasharray="1,1" />
                             <text x="3" y="6.5" className="text-[1.8px] fill-emerald-500/70 font-mono">Fastest ({Math.round(minTime)}s)</text>
-                            
+
                             <line x1="5" y1="32" x2="95" y2="32" stroke="#1E293B" strokeWidth="0.15" strokeDasharray="1,1" />
                             <text x="3" y="32.5" className="text-[1.8px] fill-rose-500/70 font-mono">Slowest ({Math.round(maxTime)}s)</text>
 
@@ -260,7 +284,7 @@ const QuestionDetails = () => {
                                     {chartPoints.map((p, i) => {
                                         let nodeColor = "fill-blue-500 stroke-blue-900";
                                         let labelColor = "fill-slate-400";
-                                        
+
                                         if (p.comparison === "progress") {
                                             nodeColor = "fill-emerald-500 stroke-[#070B13]";
                                             labelColor = "fill-emerald-400 font-bold";
@@ -272,7 +296,7 @@ const QuestionDetails = () => {
                                         return (
                                             <g key={i}>
                                                 <circle cx={p.x} cy={p.y} r="1.2" className={`${nodeColor} stroke-[0.4]`} />
-                                                
+
                                                 {p.diffText && (
                                                     <text
                                                         x={p.x}
@@ -343,11 +367,17 @@ const QuestionDetails = () => {
                             ? new Date(item.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
                             : "Recent";
 
-                        const formatSeconds = (seconds) => {
-                            if (!seconds) return "0s";
-                            const mins = Math.floor(seconds / 60);
-                            const secs = Math.floor(seconds % 60);
-                            return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+                        const formatTime = (seconds) => {
+                            if (!seconds) return "0m";
+
+                            const hours = Math.floor(seconds / 3600);
+                            const minutes = Math.floor((seconds % 3600) / 60);
+
+                            if (hours > 0) {
+                                return `${hours}h ${minutes}m`;
+                            }
+
+                            return `${minutes}m`;
                         };
 
                         let TrendIcon = Minus;
@@ -358,7 +388,7 @@ const QuestionDetails = () => {
                             const prevItem = trendList[index - 1];
                             const prevTime = typeof prevItem.timeSpent === 'number' ? prevItem.timeSpent : parseFloat(prevItem.timeSpent) || 0;
                             const currTime = typeof item.timeSpent === 'number' ? item.timeSpent : parseFloat(item.timeSpent) || 0;
-                            
+
                             if (currTime < prevTime) {
                                 TrendIcon = TrendingUp;
                                 trendWrapperClass = "border-emerald-500/20 text-emerald-400 bg-emerald-500/5";
@@ -390,7 +420,7 @@ const QuestionDetails = () => {
                                         <div>
                                             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-0.5">Time Taken</span>
                                             <p className="text-sm font-mono font-bold text-slate-300">
-                                                {typeof item.timeSpent === 'number' ? formatSeconds(item.timeSpent) : (item.timeSpent || "0s")}
+                                                {typeof item.timeSpent === 'number' ? formatTime(item.timeSpent) : (item.timeSpent || "0m")}
                                             </p>
                                         </div>
                                         <div className="w-24">
