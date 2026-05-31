@@ -331,6 +331,7 @@ async function fetchAllIntelligenceData() {
               - short actionable strategy for overall improvement
            
            RETURN JSON ONLY IN THIS FORMAT
+           NOTE- RETURN 3 SHORT points of weak and strong areas each , and a short revision strategy of 15-20 words.
            
     {
            "overallIntelligence": {

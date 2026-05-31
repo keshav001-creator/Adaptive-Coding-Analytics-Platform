@@ -43,6 +43,11 @@ const Dashboard = () => {
                 `${import.meta.env.VITE_BACKEND_URL}/api/ai-analysis`
             );
             console.log("Fetched AI Analysis:", response.data);
+            console.log("AI Analysis Data Structure:", {
+                weakAreas: response.data.weakAreas,
+                strongAreas: response.data.strongAreas,
+                personalizedRecommendations: response.data.personalizedRecommendations
+            });
             setAiAnalysis(response.data);
         } catch (err) {
             console.log("Error fetching AI analysis, using placeholder fallback:", err);
@@ -279,6 +284,23 @@ const Dashboard = () => {
                             </div>
 
                             <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-2 text-xs font-bold text-[#10B981] uppercase tracking-wider">
+                                    <TrendingUp className="w-4 h-4" />
+                                    <span>Strong Improvements</span>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    {aiAnalysis?.strongAreas.map((tag, idx) => (
+                                        <span
+                                            key={idx}
+                                            className="text-xs font-medium p-3 rounded-xl bg-[#111C18] text-[#A7F3D0] border border-[#10B981]/10 hover:border-[#10B981]/20 transition-colors cursor-default"
+                                        >
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-2 text-xs font-bold text-[#EF4444] uppercase tracking-wider">
                                     <Target className="w-4 h-4" />
                                     <span>Weak Areas</span>
@@ -295,22 +317,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-2 text-xs font-bold text-[#10B981] uppercase tracking-wider">
-                                    <TrendingUp className="w-4 h-4" />
-                                    <span>Strong Improvements</span>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    {aiAnalysis?.strongAreas.map((tag, idx) => (
-                                        <span
-                                            key={idx}
-                                            className="text-xs font-medium p-3 rounded-xl bg-[#111C18] text-[#A7F3D0] border border-[#10B981]/10 hover:border-[#10B981]/20 transition-colors cursor-default"
-                                        >
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
+                
 
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-2 text-xs font-bold text-[#3B82F6] uppercase tracking-wider">
