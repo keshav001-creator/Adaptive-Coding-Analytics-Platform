@@ -246,8 +246,15 @@ Personalized Learning Insights
 
 <hr>
 
-<h2>📸 Screenshots</h2>
+<h2>Screenshots</h2>
 
-<img src="frontend/screenshots/Attempts.png" alt="Attempts" width="700">
+<h3>Dashboard Page</h3>
 <img src="frontend/screenshots/Dashboard.png" alt="Dashboard" width="700">
+
+<br>
+<h3>Question Details Page</h3>
 <img src="frontend/screenshots/Question.png" alt="Question" width="700">
+
+<br>
+<h3>Question Attempts</h3>
+<img src="frontend/screenshots/Attempts.png" alt="Attempts" width="700">
