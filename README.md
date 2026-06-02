@@ -144,7 +144,7 @@ Frontend Dashboard
 
 <h3>2. Global Intelligence Pipeline</h3>
 <ul>
-  <li>Runs after every N total attempts</li>
+  <li>Runs after every 5 total attempts</li>
   <li>Uses aggregated behavioral dataset</li>
   <li>Generates system-wide learning insights</li>
 </ul>
