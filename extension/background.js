@@ -1,7 +1,6 @@
 chrome.runtime.onMessage.addListener((message) => {
 
     console.log("Message Received:", message);
-
     sendToBackend(message);
 
     return true;
@@ -9,7 +8,7 @@ chrome.runtime.onMessage.addListener((message) => {
 
 async function sendToBackend(event) {
     try {
-        const response = await fetch("http://localhost:5000/api/attempt", {
+        const response = await fetch("https://host-53et.onrender.com/api/attempt", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -56,7 +55,7 @@ async function syncQueue() {
         for (const event of queue) {
 
             try {
-                await fetch("http://localhost:5000/api/attempt", {
+                await fetch("https://host-53et.onrender.com/api/attempt", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
