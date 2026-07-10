@@ -157,7 +157,7 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total</p>
-                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">{totalCount || 8}</h3>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">{totalCount || 0}</h3>
                                     </div>
                                     <div className="p-2 rounded-lg bg-blue-500/5 border border-blue-500/10 text-blue-400">
                                         <Activity className="w-4 h-4" />
@@ -289,7 +289,7 @@ const Dashboard = () => {
                                     <span>Strong Improvements</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    {aiAnalysis?.strongAreas.map((tag, idx) => (
+                                    {(aiAnalysis?.strongAreas || []).map((tag, idx) => (
                                         <span
                                             key={idx}
                                             className="text-xs font-medium p-3 rounded-xl bg-[#111C18] text-[#A7F3D0] border border-[#10B981]/10 hover:border-[#10B981]/20 transition-colors cursor-default"
@@ -306,7 +306,7 @@ const Dashboard = () => {
                                     <span>Weak Areas</span>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    {aiAnalysis?.weakAreas.map((tag, idx) => (
+                                    {(aiAnalysis?.weakAreas || []).map((tag, idx) => (
                                         <span
                                             key={idx}
                                             className="text-xs font-medium p-3 rounded-xl bg-[#1C1216] text-[#FCA5A5] border border-[#EF4444]/10 hover:border-[#EF4444]/20 transition-colors cursor-default"
