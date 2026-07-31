@@ -11,7 +11,8 @@ import {
     Sparkles,
     TrendingUp,
     AlertCircle,
-    CheckCircle2
+    CheckCircle2,
+    Loader2
 } from "lucide-react";
 import axios from "./api/axios";
 
@@ -19,6 +20,7 @@ const Dashboard = () => {
     // --------------------------------------------------------
     const [questions, setQuestions] = useState([]);
     const [aiAnalysis, setAiAnalysis] = useState(null);
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("ALL");
@@ -31,7 +33,7 @@ const Dashboard = () => {
                 `${import.meta.env.VITE_BACKEND_URL}/api/questions`
             );
             console.log("Fetched Questions:", response.data.questions);
-            setQuestions(response.data.questions);
+            setQuestions(response.data.questions || []);
         } catch (err) {
             console.log("Error fetching questions, using placeholder fallback:", err);
         }
@@ -43,11 +45,6 @@ const Dashboard = () => {
                 `${import.meta.env.VITE_BACKEND_URL}/api/ai-analysis`
             );
             console.log("Fetched AI Analysis:", response.data);
-            console.log("AI Analysis Data Structure:", {
-                weakAreas: response.data.weakAreas,
-                strongAreas: response.data.strongAreas,
-                personalizedRecommendations: response.data.personalizedRecommendations
-            });
             setAiAnalysis(response.data);
         } catch (err) {
             console.log("Error fetching AI analysis, using placeholder fallback:", err);
@@ -55,8 +52,13 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        fetchQuestions();
-        fetchAIanalysis();
+        const loadDashboardData = async () => {
+            setLoading(true);
+            await Promise.all([fetchQuestions(), fetchAIanalysis()]);
+            setLoading(false);
+        };
+
+        loadDashboardData();
     }, []);
 
     // --------------------------------------------------------
@@ -108,7 +110,7 @@ const Dashboard = () => {
         <div className="w-full min-h-screen bg-[#070B13] text-[#F3F4F6] font-sans antialiased selection:bg-blue-500/30 overflow-x-hidden">
             <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2">
 
-                {/* ADJUSTED HEADER UI - Matches alignment from image_d748ee.png */}
+                {/* HEADER UI */}
                 <header className="w-full py-5 flex items-center justify-between mb-6">
                     {/* Left Brand Identity */}
                     <div className="flex items-center gap-3 shrink-0">
@@ -157,7 +159,9 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Total</p>
-                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">{totalCount || 0}</h3>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">
+                                            {loading ? <span className="inline-block w-8 h-6 bg-slate-800/80 animate-pulse rounded"></span> : totalCount}
+                                        </h3>
                                     </div>
                                     <div className="p-2 rounded-lg bg-blue-500/5 border border-blue-500/10 text-blue-400">
                                         <Activity className="w-4 h-4" />
@@ -171,7 +175,9 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-wider text-[#EF4444]">High</p>
-                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">{highPriorityCount}</h3>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">
+                                            {loading ? <span className="inline-block w-8 h-6 bg-slate-800/80 animate-pulse rounded"></span> : highPriorityCount}
+                                        </h3>
                                     </div>
                                     <div className="p-2 rounded-lg bg-red-500/5 border border-red-500/10 text-red-400">
                                         <Target className="w-4 h-4" />
@@ -185,7 +191,9 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-wider text-[#EAB308]">Medium</p>
-                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">{mediumPriorityCount}</h3>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">
+                                            {loading ? <span className="inline-block w-8 h-6 bg-slate-800/80 animate-pulse rounded"></span> : mediumPriorityCount}
+                                        </h3>
                                     </div>
                                     <div className="p-2 rounded-lg bg-yellow-500/5 border border-yellow-500/10 text-yellow-500">
                                         <AlertCircle className="w-4 h-4" />
@@ -199,7 +207,9 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <p className="text-xs font-bold uppercase tracking-wider text-[#10B981]">Low</p>
-                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">{lowPriorityCount}</h3>
+                                        <h3 className="text-2xl font-bold tracking-tight text-white mt-2">
+                                            {loading ? <span className="inline-block w-8 h-6 bg-slate-800/80 animate-pulse rounded"></span> : lowPriorityCount}
+                                        </h3>
                                     </div>
                                     <div className="p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10 text-emerald-400">
                                         <CheckCircle2 className="w-4 h-4" />
@@ -214,7 +224,9 @@ const Dashboard = () => {
                             <div className="flex items-center justify-between border-b border-[#152035] pb-4 mb-5">
                                 <div>
                                     <h2 className="text-lg font-bold tracking-tight text-white">Question Log</h2>
-                                    <p className="text-xs text-slate-400 mt-0.5">{filteredQuestions.length} questions total</p>
+                                    <p className="text-xs text-slate-400 mt-0.5">
+                                        {loading ? "Fetching records..." : `${filteredQuestions.length} questions total`}
+                                    </p>
                                 </div>
 
                                 <div className="flex items-center gap-3">
@@ -241,7 +253,16 @@ const Dashboard = () => {
                                             [&::-webkit-scrollbar-thumb]:border
                                             [&::-webkit-scrollbar-thumb]:border-[#141C2F]
                                             hover:[&::-webkit-scrollbar-thumb]:bg-blue-500/30">
-                                {filteredQuestions.length === 0 ? (
+                                
+                                {loading ? (
+                                    /* Loading Indicator State */
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 py-24 gap-3">
+                                        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+                                        <p className="text-xs font-medium text-slate-400 animate-pulse">
+                                            Loading questions & intelligence data...
+                                        </p>
+                                    </div>
+                                ) : filteredQuestions.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-slate-500 py-20">
                                         <Search className="w-8 h-8 text-slate-600 mb-3" />
                                         <p className="text-sm font-medium">No problems matching constraints</p>
@@ -283,51 +304,67 @@ const Dashboard = () => {
                                 <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">AI Learning Insights</h3>
                             </div>
 
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-2 text-xs font-bold text-[#10B981] uppercase tracking-wider">
-                                    <TrendingUp className="w-4 h-4" />
-                                    <span>Strong Improvements</span>
+                            {loading ? (
+                                <div className="flex flex-col gap-6 animate-pulse">
+                                    <div className="h-16 bg-[#0E1526] rounded-xl"></div>
+                                    <div className="h-16 bg-[#0E1526] rounded-xl"></div>
+                                    <div className="h-24 bg-[#0E1526] rounded-xl"></div>
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    {(aiAnalysis?.strongAreas || []).map((tag, idx) => (
-                                        <span
-                                            key={idx}
-                                            className="text-xs font-medium p-3 rounded-xl bg-[#111C18] text-[#A7F3D0] border border-[#10B981]/10 hover:border-[#10B981]/20 transition-colors cursor-default"
-                                        >
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
+                            ) : (
+                                <>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-[#10B981] uppercase tracking-wider">
+                                            <TrendingUp className="w-4 h-4" />
+                                            <span>Strong Improvements</span>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            {(aiAnalysis?.strongAreas || []).length === 0 ? (
+                                                <span className="text-xs text-slate-500 italic">No strong areas analyzed yet.</span>
+                                            ) : (
+                                                (aiAnalysis?.strongAreas || []).map((tag, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="text-xs font-medium p-3 rounded-xl bg-[#111C18] text-[#A7F3D0] border border-[#10B981]/10 hover:border-[#10B981]/20 transition-colors cursor-default"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
 
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-2 text-xs font-bold text-[#EF4444] uppercase tracking-wider">
-                                    <Target className="w-4 h-4" />
-                                    <span>Weak Areas</span>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    {(aiAnalysis?.weakAreas || []).map((tag, idx) => (
-                                        <span
-                                            key={idx}
-                                            className="text-xs font-medium p-3 rounded-xl bg-[#1C1216] text-[#FCA5A5] border border-[#EF4444]/10 hover:border-[#EF4444]/20 transition-colors cursor-default"
-                                        >
-                                            {tag}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-[#EF4444] uppercase tracking-wider">
+                                            <Target className="w-4 h-4" />
+                                            <span>Weak Areas</span>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            {(aiAnalysis?.weakAreas || []).length === 0 ? (
+                                                <span className="text-xs text-slate-500 italic">No weak areas identified.</span>
+                                            ) : (
+                                                (aiAnalysis?.weakAreas || []).map((tag, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className="text-xs font-medium p-3 rounded-xl bg-[#1C1216] text-[#FCA5A5] border border-[#EF4444]/10 hover:border-[#EF4444]/20 transition-colors cursor-default"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
 
-                
-
-                            <div className="flex flex-col gap-3">
-                                <div className="flex items-center gap-2 text-xs font-bold text-[#3B82F6] uppercase tracking-wider">
-                                    <Lightbulb className="w-4 h-4" />
-                                    <span>Revision Strategy</span>
-                                </div>
-                                <p className="text-sm text-slate-400 leading-relaxed">
-                                    {aiAnalysis?.personalizedRecommendations || "No specific strategy recommended at this time. Focus on consistent practice and review of weak areas."}
-                                </p>
-                            </div>
+                                    <div className="flex flex-col gap-3">
+                                        <div className="flex items-center gap-2 text-xs font-bold text-[#3B82F6] uppercase tracking-wider">
+                                            <Lightbulb className="w-4 h-4" />
+                                            <span>Revision Strategy</span>
+                                        </div>
+                                        <p className="text-sm text-slate-400 leading-relaxed">
+                                            {aiAnalysis?.personalizedRecommendations || "No specific strategy recommended at this time. Focus on consistent practice and review of weak areas."}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </main>

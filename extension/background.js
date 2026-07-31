@@ -15,7 +15,7 @@ async function sendToBackend(event) {
             },
             body: JSON.stringify(event)
 
-
+            
         });
 
         if (!response.ok) {
