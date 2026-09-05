@@ -7,9 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://adaptive-coding-analytics-platform.onrender.com/">🚀 Live Demo</a>
-  &nbsp;&nbsp;•&nbsp;&nbsp;
-  <a href="https://github.com/keshav001-creator/Adaptive-Coding-Analytics-Platform">📂 Source Code</a>
+  <a href="https://adaptive-coding-analytics-platform.onrender.com/">Live Demo</a>
 </p>
 
 <hr>
