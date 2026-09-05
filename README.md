@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://adaptive-coding-analytics-platform.onrender.com/">Live Demo</a>
+  <a href="https://adaptive-coding-analytics-platform.onrender.com/">🚀 Live Demo</a>
 </p>
 
 <hr>
@@ -16,7 +16,7 @@
 
 <p>
 Traditional DSA practice platforms primarily track whether a problem was solved or not. 
-They do not capture the deeper behavioral signals behind the learning process — such as active coding time, repeated failures, revision attempts, question switching, and performance changes across attempts.
+They do not capture the deeper behavioral signals behind the learning process - such as active coding time, repeated failures, revision attempts, question switching, and performance changes across attempts.
 </p>
 
 <p>
@@ -366,7 +366,7 @@ Try the deployed application:
 </p>
 
 <p>
-<a href="YOUR_DEMO_LINK">🚀 Open Live Demo</a>
+<a href="https://adaptive-coding-analytics-platform.onrender.com/">🚀 Open Live Demo</a>
 </p>
 
 <p>
@@ -400,38 +400,28 @@ The architecture can be extended to support multiple users by introducing user i
   <li>Converted raw coding behavior into structured learning insights</li>
 </ul>
 
-<hr>
+<h2>📈 Future Roadmap</h2>
 
-<h2>📈 Future Improvements</h2>
-
+<h3>🔐 Multi-User Authentication & Open Source</h3>
 <ul>
-  <li>Spaced repetition scheduling engine</li>
-  <li>Topic clustering and skill graph generation</li>
-  <li>Difficulty prediction based on behavioral history</li>
-  <li>Multi-platform support for coding platforms</li>
-  <li>Real-time AI coding coach</li>
-  <li>Multi-user authentication and data isolation</li>
-  <li>Background job queue for asynchronous AI processing</li>
-  <li>Advanced observability and processing metrics</li>
+  <li>Add authentication and user-level data isolation</li>
+  <li>Support multi-user intelligence pipelines</li>
+  <li>Open-source the platform for the DSA learning community</li>
 </ul>
 
-<hr>
+<h3>🧠 Real-Time Code Behavior Intelligence</h3>
+<p>
+Analyze coding behavior while solving, including time spent, repeated edits, backtracking, and patterns before wrong submissions.
+</p>
+
+<h3>🎯 Deeper Learning Diagnostics</h3>
+<p>
+Combine real-time behavior with submission history to identify where learners get stuck, recurring points of confusion, and patterns behind their errors, enabling more precise personalized feedback.
+</p>
+
 
 <h2>👨‍💻 Author</h2>
 
 <p>
 <strong>Keshav</strong>
 </p>
-
-<h2>Screenshots</h2>
-
-<h3>Dashboard Page</h3>
-<img src="frontend/screenshots/Dashboard.png" alt="Dashboard" width="700">
-
-<br>
-<h3>Question Details Page</h3>
-<img src="frontend/screenshots/Question.png" alt="Question" width="700">
-
-<br>
-<h3>Question Attempts</h3>
-<img src="frontend/screenshots/Attempts.png" alt="Attempts" width="700">
